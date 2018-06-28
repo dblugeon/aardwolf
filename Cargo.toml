@@ -1,8 +1,10 @@
+
 [package]
 name = "aardwolf"
 version = "0.1.0"
 authors = ["Eric Chadbourne <sillystring@protonmail.com>", "Elijah Mark Anderson <kd0bpv@gmail.com>", "Paul Woolcock <paul@woolcock.us>", "Asonix <asonix.dev@gmail.com>"]
 description = "Powering connected social communities with free software."
+autobins = false
 
 [workspace]
 members = [
@@ -36,14 +38,17 @@ path = "src/bin/setup.rs"
 bs58 = "0.2"
 bcrypt = "0.2"
 collection_macros = "0.2.0"
+colored = "1.6"
 config = "0.8.0"
 derive_builder = "0.5.0"
+dotenv = "0.13.0"
 failure = "0.1.1"
 r2d2 = "0.8"
 r2d2-diesel = "1.0"
 ring = "0.11"
 rocket = "=0.3.14"
 rocket_codegen = "=0.3.14"
+rpassword = "2.0"
 serde = "1.0.21"
 serde_derive = "1.0.21"
 url = "1.7"
@@ -69,7 +74,7 @@ features = ["yaml"]
 [dependencies.diesel]
 version = "1.1"
 default-features = false
-features = ["postgres", "uuid", "chrono"]
+features = ["postgres", "uuid", "chrono", "r2d2"]
 
 [dependencies.rocket_contrib]
 version = "=0.3.14"
