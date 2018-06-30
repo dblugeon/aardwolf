@@ -24,13 +24,13 @@ log-simple = ["simple-logging"]
 name = "_aardwolf"
 path = "src/aardwolf/lib.rs"
 
-[[bin]]
-name = "aardwolf-server"
-path = "src/bin/main.rs"
-
-[[bin]]
-name = "setup"
-path = "src/bin/setup.rs"
+#[[bin]]
+#name = "aardwolf-server"
+#path = "src/bin/main.rs"
+#
+#[[bin]]
+#name = "setup"
+#path = "src/bin/setup.rs"
 
 [dependencies]
 bs58 = "0.2"
