@@ -13,7 +13,10 @@ extern crate diesel;
 extern crate dotenv;
 
 use colored::Colorize;
-use diesel::{pg::PgConnection, r2d2::{ConnectionManager, Pool}};
+use diesel::{
+    pg::PgConnection,
+    r2d2::{ConnectionManager, Pool},
+};
 use dotenv::dotenv;
 
 // Clean up from std::xyz; to std::{}
@@ -22,16 +25,16 @@ use std::{
     fs::{self, File},
     io::{self, ErrorKind},
     path::Path,
-    process::{self, Command, Output, exit}, // Adding exit
+    process::{self, exit, Command, Output}, // Adding exit
 };
 
 use rpassword;
 
 use aardwolf_models::{
-    DB_URL,
-    db_conn::{DbConn, PgPool},
+    db_conn::{DbConn, Pool},
     instance::*,
-    users::*
+    users::*,
+    DB_URL,
 };
 
 use clap::App;
@@ -87,14 +90,14 @@ fn main() {
 /// End aardwolf setup.rs
 
 /// Initializes a database pool.
-fn init_pool() -> Option<PgPool> {
+fn init_pool() -> Option<Pool> {
     dotenv().ok();
 
     let manager = ConnectionManager::<PgConnection>::new(DB_URL.as_str());
     Pool::new(manager).ok()
 }
 
-pub fn check() -> PgPool {
+pub fn check() -> Pool {
     if let Some(pool) = init_pool() {
         match pool.get() {
             Ok(conn) => {
@@ -103,7 +106,7 @@ pub fn check() -> PgPool {
                     run_setup(Some(db_conn));
                 }
             }
-            Err(_) => panic!("Couldn't connect to database")
+            Err(_) => panic!("Couldn't connect to database"),
         }
         migrate();
         pool
@@ -115,7 +118,8 @@ pub fn check() -> PgPool {
 
 fn run_setup(conn: Option<DbConn>) {
     println!("\n\n");
-    println!("{}\n{}\n\n{}",
+    println!(
+        "{}\n{}\n\n{}",
         "This is the Aardwolf setup tool.".magenta(),
         "It will help you setup your new instance, by asking you a few questions.".magenta(),
         "First let's check that you have all the required dependencies. Press Enter to start."
@@ -142,7 +146,10 @@ fn setup_db(conn: Option<DbConn>) -> DbConn {
         Some(conn) => conn,
         None => {
             println!("\n{}\n", "We are going to setup the database.".magenta());
-            println!("{}\n", "About to create a new PostgreSQL user named 'aardwolf'".blue());
+            println!(
+                "{}\n",
+                "About to create a new PostgreSQL user named 'aardwolf'".blue()
+            );
             Command::new("createuser")
                 .arg("-d")
                 .arg("-P")
@@ -155,7 +162,10 @@ fn setup_db(conn: Option<DbConn>) -> DbConn {
                 })
                 .expect("Couldn't create new user");
 
-            println!("{}\n", "About to create a new PostgreSQL database named 'aardwolf'".blue());
+            println!(
+                "{}\n",
+                "About to create a new PostgreSQL database named 'aardwolf'".blue()
+            );
             Command::new("createdb")
                 .arg("-O")
                 .arg("aardwolf")
@@ -200,10 +210,8 @@ fn setup_type(conn: DbConn) {
     println!("  1 - Simple setup");
     println!("  2 - Complete setup");
     match read_line().as_ref() {
-        "Simple" | "simple" | "s" | "S" |
-        "1" => quick_setup(conn),
-        "Complete" | "complete" | "c" | "C" |
-        "2" => complete_setup(conn),
+        "Simple" | "simple" | "s" | "S" | "1" => quick_setup(conn),
+        "Complete" | "complete" | "c" | "C" | "2" => complete_setup(conn),
         x => {
             println!("Invalid choice. Choose between '1' or '2'. {}", x);
             setup_type(conn);
@@ -219,13 +227,19 @@ fn quick_setup(conn: DbConn) {
     println!("\nWhat is your instance name?");
     let name = read_line();
 
-    let instance = Instance::insert(&*conn, NewInstance {
-        public_domain: domain,
-        name: name,
-        local: true
-    });
+    let instance = Instance::insert(
+        &*conn,
+        NewInstance {
+            public_domain: domain,
+            name: name,
+            local: true,
+        },
+    );
 
-    println!("{}\n", "  ✔️ Your instance was succesfully created!".green());
+    println!(
+        "{}\n",
+        "  ✔️ Your instance was succesfully created!".green()
+    );
 
     // Generate Rocket secret key.
     let key = Command::new("openssl")
@@ -235,7 +249,7 @@ fn quick_setup(conn: DbConn) {
         .output()
         .map(|o| String::from_utf8(o.stdout).expect("Invalid output from openssl"))
         .expect("Couldn't generate secret key.");
-    write_to_dotenv("ROCKET_SECRET_KEY", key);    
+    write_to_dotenv("ROCKET_SECRET_KEY", key);
 
     create_admin(instance, conn);
 }
@@ -253,7 +267,10 @@ fn complete_setup(conn: DbConn) {
 }
 
 fn create_admin(instance: Instance, conn: DbConn) {
-    println!("{}\n\n", "You are now about to create your admin account".magenta());
+    println!(
+        "{}\n\n",
+        "You are now about to create your admin account".magenta()
+    );
 
     println!("What is your username? (default: admin)");
     let name = read_line_or("admin");
@@ -274,7 +291,10 @@ fn create_admin(instance: Instance, conn: DbConn) {
         User::hash_pass(password),
     ).update_boxes(&*conn);
 
-    println!("{}\n", "  ✔️ Your account was succesfully created!".green());
+    println!(
+        "{}\n",
+        "  ✔️ Your account was succesfully created!".green()
+    );
 }
 
 fn check_native_deps() {
@@ -292,24 +312,33 @@ fn check_native_deps() {
     if not_found.len() > 0 {
         println!("{}\n", "Some native dependencies are missing:".red());
         for (dep, install) in not_found.into_iter() {
-            println!("{}", format!("  - {} (can be installed with `{}`, on Debian based distributions)", dep, install).red())
+            println!(
+                "{}",
+                format!(
+                    "  - {} (can be installed with `{}`, on Debian based distributions)",
+                    dep, install
+                ).red()
+            )
         }
         println!("\nRetry once you have installed them.");
         exit(1);
     } else {
-        println!("{}", "  ✔️ All native dependencies are present.".green())
+        println!(
+            "{}",
+            "  ✔️ All native dependencies are present.".green()
+        )
     }
 }
 
 fn try_run(command: &'static str) -> bool {
-    Command::new(command)
-        .output()
-        .is_ok()
+    Command::new(command).output().is_ok()
 }
 
 fn read_line() -> String {
     let mut input = String::new();
-    io::stdin().read_line(&mut input).expect("Unable to read line");
+    io::stdin()
+        .read_line(&mut input)
+        .expect("Unable to read line");
     input.retain(|c| c != '\n');
     input
 }
@@ -328,6 +357,13 @@ fn write_to_dotenv(var: &'static str, val: String) {
         File::create(".env").expect("Error while creating .env file");
     }
 
-    fs::write(".env", format!("{}\n{}={}", fs::read_to_string(".env").expect("Unable to read .env"), var, val)).expect("Unable to write .env");
+    fs::write(
+        ".env",
+        format!(
+            "{}\n{}={}",
+            fs::read_to_string(".env").expect("Unable to read .env"),
+            var,
+            val
+        ),
+    ).expect("Unable to write .env");
 }
-

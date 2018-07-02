@@ -1,4 +1,3 @@
-
 [package]
 name = "aardwolf"
 version = "0.1.0"
@@ -68,7 +67,7 @@ version = "0.4"
 features = ["serde"]
 
 [dependencies.clap]
-version = "2.29"
+version = "2.32"
 features = ["yaml"]
 
 [dependencies.diesel]
