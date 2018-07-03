@@ -1,6 +1,5 @@
 #![recursion_limit = "128"]
-#![feature(plugin)]
-#![feature(custom_derive)]
+#![feature(custom_derive, decl_macro, plugin)]
 #![plugin(rocket_codegen)]
 #![feature(extern_prelude)]
 
